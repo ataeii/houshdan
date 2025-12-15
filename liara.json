@@ -1,0 +1,12 @@
+{
+    "platform": "python",
+    "app": "houshdan-ai",
+    "port": 5001,
+    "pythonVersion": "3.11",
+    "disks": [
+        {
+            "name": "data",
+            "mountTo": "/app/data"
+        }
+    ]
+}

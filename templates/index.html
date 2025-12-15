@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <h1>تسلط بر هوش مصنوعی</h1>
+    <p>به جامعه نخبگان مهندسی هوش مصنوعی در تهران بپیوندید. <br> یک مسیر جامع ۵ مرحله‌ای برای تسلط بر آینده.</p>
+    <a href="{{ url_for('register') }}" class="cta-button">شروع مسیر یادگیری</a>
+</section>
+
+<section style="padding: 4rem 5%; background: #fff; text-align: center;">
+    <h2 style="color: var(--primary-color); margin-bottom: 2rem;">مدرس دوره</h2>
+    <div
+        style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 3rem; text-align: right; max-width: 1000px; margin: 0 auto;">
+        <img src="{{ url_for('static', filename='images/instructor.png') }}" alt="Hadi Ataei"
+            style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent-color);">
+        <div style="max-width: 600px;">
+            <h3 style="font-size: 1.8rem; margin-bottom: 0.5rem;">هادی عطایی</h3>
+            <p style="color: var(--text-light); font-weight: bold; margin-bottom: 1rem;">کارشناسی ارشد مهندسی کامپیوتر
+                از دانشگاه علم و صنعت میسوری (Missouri S&T)</p>
+            <p>با سابقه فعالیت در شرکت‌های پیشرو تکنولوژی در آمریکا و تدریس دروس تخصصی نظیر ساختمان داده، طراحی
+                الگوریتم، علم داده، رباتیک، بینایی ماشین و پردازش زبان طبیعی در دانشگاه‌های معتبر:</p>
+            <ul
+                style="list-style-type: none; padding: 0; display: flex; gap: 1rem; margin-top: 1rem; font-weight: 600; color: var(--primary-color);">
+                <li>UMBC</li>
+                <li>|</li>
+                <li>Bowie State</li>
+                <li>|</li>
+                <li>Columbia</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="grid">
+    <div class="card">
+        <div class="card-icon">📍</div>
+        <h3>آموزش ترکیبی (Hybrid)</h3>
+        <p>کلاس‌های حضوری (مکان دقیق متعاقباً اعلام می‌شود) یا آنلاین.</p>
+    </div>
+    <div class="card">
+        <div class="card-icon">📜</div>
+        <h3>گواهینامه معتبر</h3>
+        <p>دریافت مدرک معتبر پس از تکمیل مسیر ۵ مرحله‌ای مهندسی هوش مصنوعی.</p>
+    </div>
+    <div class="card">
+        <div class="card-icon">🤝</div>
+        <h3>شبکه‌سازی</h3>
+        <p>ارتباط با علاقه‌مندان هم‌فکر و متخصصان صنعت در گروه اختصاصی ما.</p>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,263 @@
+:root {
+    --bg-color: #ffffff;
+    --card-bg: #ffffff;
+    --text-color: #1f1f1f;
+    --text-light: #5f6368;
+    --primary-color: #0056d2;
+    /* DeepLearning.ai Blue */
+    --primary-hover: #00419e;
+    --accent-color: #fbbc04;
+    /* Subtle yellow accent */
+    --font-main: 'Vazirmatn', sans-serif;
+    --font-header: 'Vazirmatn', sans-serif;
+    --border-color: #dadce0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-main);
+    margin: 0;
+    padding: 0;
+    line-height: 1.8;
+}
+
+h1,
+h2,
+h3,
+.logo {
+    font-family: var(--font-header);
+    color: #202124;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify_content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--primary-color);
+    letter-spacing: -0.5px;
+}
+
+.highlight {
+    color: #202124;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 2.5rem;
+}
+
+.nav-links a {
+    font-weight: 500;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: var(--primary-color);
+}
+
+.btn-nav {
+    background-color: var(--primary-color);
+    color: #fff !important;
+    padding: 0.5rem 1.2rem;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-nav:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Hero Section */
+.hero {
+    text-align: center;
+    padding: 6rem 1rem;
+    background-color: #f8f9fa;
+    /* Very light gray */
+}
+
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    color: #202124;
+}
+
+.hero p {
+    font-size: 1.25rem;
+    color: var(--text-light);
+    max-width: 700px;
+    margin: 0 auto 2.5rem auto;
+}
+
+.cta-button {
+    background: var(--primary-color);
+    color: #fff;
+    padding: 0.8rem 2rem;
+    font-weight: 600;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: background 0.2s;
+    display: inline-block;
+}
+
+.cta-button:hover {
+    background: var(--primary-hover);
+}
+
+/* Cards (Courses) */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    padding: 4rem 5%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border-color: transparent;
+}
+
+.card-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.card h3 {
+    margin-top: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.card p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+/* Forms */
+.form-container {
+    max-width: 500px;
+    margin: 4rem auto;
+    background: var(--card-bg);
+    padding: 2.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #202124;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 0.7rem;
+    background: #fff;
+    border: 1px solid #dadce0;
+    color: #202124;
+    border-radius: 4px;
+    font-family: var(--font-main);
+    font-size: 1rem;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 86, 210, 0.1);
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--primary-color);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+button[type="submit"]:hover {
+    background: var(--primary-hover);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 3rem;
+    background: #f8f9fa;
+    color: var(--text-light);
+    border-top: 1px solid var(--border-color);
+    margin-top: 4rem;
+}
+
+.footer-note {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.alert {
+    padding: 1rem;
+    margin: 1rem 5%;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.alert-success {
+    background: #e6f4ea;
+    color: #1e8e3e;
+    border: 1px solid #ceead6;
+}
+
+.alert-error {
+    background: #fce8e6;
+    color: #d93025;
+    border: 1px solid #fad2cf;
+}

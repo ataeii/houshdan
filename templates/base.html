@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | موسسه هوش مصنوعی هوشدان</title>
+    <meta name="description" content="{{ description }}">
+    <meta name="keywords" content="{{ keywords }}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://houshdan.ai/">
+    <meta property="og:title" content="{{ title }} | موسسه هوش مصنوعی هوشدان">
+    <meta property="og:description" content="{{ description }}">
+    <meta property="og:image" content="{{ url_for('static', filename='images/instructor.png', _external=True) }}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://houshdan.ai/">
+    <meta property="twitter:title" content="{{ title }} | موسسه هوش مصنوعی هوشدان">
+    <meta property="twitter:description" content="{{ description }}">
+    <meta property="twitter:image" content="{{ url_for('static', filename='images/instructor.png', _external=True) }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">هوشدان <span class="highlight">AI</span></div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('home') }}">خانه</a></li>
+            <li><a href="{{ url_for('courses') }}">دوره آموزشی</a></li>
+            <li><a href="{{ url_for('register') }}" class="btn-nav">ثبت نام</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; ۱۴۰۴ موسسه هوش مصنوعی هوشدان. تهران، ایران.</p>
+        <p class="footer-note">پرورش نسل آینده مهندسین هوش مصنوعی</p>
+    </footer>
+
+</body>
+
+</html>
