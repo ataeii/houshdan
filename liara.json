@@ -1,7 +1,7 @@
 {
     "platform": "python",
     "app": "houshdan-ai",
-    "port": 5001,
+    "port": 8000,
     "pythonVersion": "3.11",
     "disks": [
         {
