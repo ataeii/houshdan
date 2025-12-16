@@ -7,3 +7,4 @@ venv/
 env/
 students.db
 .DS_Store
+*.db

@@ -1,11 +1,31 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, Response
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from authlib.integrations.flask_client import OAuth
 import sqlite3
 import os
 import csv
 from io import StringIO
+from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Change this in production!
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here')  # Change this in production!
+
+# Flask-Login setup
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'لطفاً ابتدا وارد شوید'
+
+# OAuth setup
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=os.environ.get('GOOGLE_CLIENT_ID'),
+    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'}
+)
 
 # Database Configuration for Liara
 # If running on Liara (where /app/data exists), use the persistent disk.
@@ -20,6 +40,8 @@ DB_NAME = os.path.join(DB_FOLDER, 'students.db')
 def init_db():
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
+        
+        # Legacy students table (keep for admin reference)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS students (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,7 +52,79 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        # Users table for authentication
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                name TEXT NOT NULL,
+                password_hash TEXT,
+                google_id TEXT UNIQUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Courses table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS courses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                description TEXT,
+                track TEXT NOT NULL,
+                order_index INTEGER,
+                total_modules INTEGER DEFAULT 6
+            )
+        ''')
+        
+        # Enrollments table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS enrollments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                course_id INTEGER NOT NULL,
+                enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (course_id) REFERENCES courses(id),
+                UNIQUE(user_id, course_id)
+            )
+        ''')
+        
+        # Course progress table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS course_progress (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                course_id INTEGER NOT NULL,
+                module_number INTEGER NOT NULL,
+                completed BOOLEAN DEFAULT 0,
+                completed_at TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (course_id) REFERENCES courses(id),
+                UNIQUE(user_id, course_id, module_number)
+            )
+        ''')
+        
         conn.commit()
+        
+        # Seed courses if empty
+        cursor.execute('SELECT COUNT(*) FROM courses')
+        if cursor.fetchone()[0] == 0:
+            courses_data = [
+                ('ریاضیات پیشرفته و نظریه یادگیری آماری', 'تمرکز بر مبانی ریاضی و نظریه یادگیری', 'LLM', 1, 6),
+                ('مبانی نظری زبان‌شناسی محاسباتی', 'اصول زبان‌شناسی برای NLP', 'LLM', 2, 6),
+                ('تحلیل ریاضی معماری ترنسفورمرها', 'معماری و مکانیزم توجه', 'LLM', 3, 6),
+                ('نظریه مدل‌های مولد', 'مدل‌های مولد و استنتاج احتمالاتی', 'LLM', 4, 6),
+                ('سمینار پژوهشی NLP', 'تحلیل مقالات پیشرفته', 'LLM', 5, 6),
+                ('مبانی پایتون و ساختمان داده‌ها', 'شروع مسیر برنامه‌نویسی', 'AI_ROBOTICS', 1, 6),
+                ('الگوریتم‌ها و تفکر محاسباتی', 'حل مسئله و طراحی الگوریتم', 'AI_ROBOTICS', 2, 6),
+                ('ریاضیات پایه AI و بهینه‌سازی', 'جبر خطی، حساب دیفرانسیل و بهینه‌سازی', 'AI_ROBOTICS', 3, 6),
+                ('اصول یادگیری ماشین و عمیق', 'ML و DL از مبانی تا پیشرفته', 'AI_ROBOTICS', 4, 6),
+                ('بینایی ماشین و مکانیزم‌های توجه', 'Computer Vision و Attention', 'AI_ROBOTICS', 5, 6),
+                ('رباتیک و سیستم‌های هوشمند', 'کاربردهای عملی AI در رباتیک', 'AI_ROBOTICS', 6, 6),
+            ]
+            cursor.executemany('INSERT INTO courses (title, description, track, order_index, total_modules) VALUES (?, ?, ?, ?, ?)', courses_data)
+            conn.commit()
 
 init_db()
 
@@ -39,6 +133,31 @@ KEYWORDS = "موسسه, آموزشی, هوش مصنوعی, یادگیری ماش
 
 # Admin password (CHANGE THIS!)
 ADMIN_PASSWORD = "houshdan2024"
+
+# User class for Flask-Login
+class User(UserMixin):
+    def __init__(self, id, email, name):
+        self.id = id
+        self.email = email
+        self.name = name
+
+@login_manager.user_loader
+def load_user(user_id):
+    with sqlite3.connect(DB_NAME) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+        user_data = cursor.fetchone()
+        if user_data:
+            return User(user_data['id'], user_data['email'], user_data['name'])
+    return None
+
+# Register authentication and student routes
+from auth_routes import register_auth_routes
+from student_routes import register_student_routes
+
+register_auth_routes(app, DB_NAME, google)
+register_student_routes(app, DB_NAME)
 
 @app.route('/')
 def home():
