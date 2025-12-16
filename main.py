@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session, Response
 import sqlite3
 import os
+import csv
+from io import StringIO
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Change this in production!
@@ -34,6 +36,9 @@ init_db()
 
 # Common SEO Keywords
 KEYWORDS = "موسسه, آموزشی, هوش مصنوعی, یادگیری ماشین, تهران, شهرک غرب, سعادت آباد, کرج, روباتیک, مدل های زبانی, دید ماشین, بینایی ماشین, علوم داده"
+
+# Admin password (CHANGE THIS!)
+ADMIN_PASSWORD = "houshdan2024"
 
 @app.route('/')
 def home():
@@ -125,6 +130,70 @@ def sitemap():
   </url>
 </urlset>"""
     return xml, 200, {'Content-Type': 'application/xml'}
+
+# Admin Routes
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == ADMIN_PASSWORD:
+            session['admin_logged_in'] = True
+            return redirect(url_for('admin_dashboard'))
+        else:
+            return render_template('admin_login.html', error='رمز عبور اشتباه است')
+    return render_template('admin_login.html')
+
+@app.route('/admin')
+def admin_dashboard():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM students ORDER BY created_at DESC')
+            students = cursor.fetchall()
+        return render_template('admin_dashboard.html', students=students)
+    except Exception as e:
+        flash(f'خطا در بارگذاری داده‌ها: {e}', 'error')
+        return render_template('admin_dashboard.html', students=[])
+
+@app.route('/admin/export')
+def admin_export_csv():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM students ORDER BY created_at DESC')
+            students = cursor.fetchall()
+        
+        # Create CSV
+        si = StringIO()
+        writer = csv.writer(si)
+        writer.writerow(['ID', 'Name', 'Email', 'Phone', 'Mode', 'Created At'])
+        for student in students:
+            writer.writerow([student['id'], student['name'], student['email'], 
+                           student['phone'], student['mode'], student['created_at']])
+        
+        output = si.getvalue()
+        return Response(
+            output,
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=students.csv'}
+        )
+    except Exception as e:
+        flash(f'خطا در ایجاد فایل CSV: {e}', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    return redirect(url_for('home'))
+
 
 if __name__ == '__main__':
     # Use 0.0.0.0 to allow external connections (required for Liara/Docker)
