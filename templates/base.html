@@ -32,7 +32,8 @@
         <div class="logo">هوشدان <span class="highlight">AI</span></div>
         <ul class="nav-links">
             <li><a href="{{ url_for('home') }}">خانه</a></li>
-            <li><a href="{{ url_for('courses') }}">دوره آموزشی</a></li>
+            <li><a href="{{ url_for('paths') }}">مسیرهای آموزشی</a></li>
+            <li><a href="{{ url_for('courses') }}">دوره‌های آموزشی</a></li>
             {% if current_user.is_authenticated %}
             <li><a href="{{ url_for('dashboard') }}">داشبورد</a></li>
             <li><a href="{{ url_for('logout') }}" class="btn-nav">خروج</a></li>

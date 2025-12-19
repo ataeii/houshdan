@@ -199,8 +199,8 @@ def home():
                          description="موسسه آموزشی هوشدان در تهران (شهرک غرب و سعادت آباد) و کرج. برگزارکننده دوره‌های تخصصی هوش مصنوعی، یادگیری ماشین، علوم داده، رباتیک و مدل‌های زبانی.",
                          keywords=KEYWORDS)
 
-@app.route('/courses')
-def courses():
+@app.route('/paths')
+def paths():
     with sqlite3.connect(DB_NAME) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -226,9 +226,31 @@ def courses():
                 "courses": track_courses
             })
             
-    return render_template('courses.html', tracks=tracks,
-                         title="دوره آموزشی",
-                         description="دوره جامع هوش مصنوعی و رباتیک در تهران و کرج. آموزش عملی مدل‌های زبانی، دید ماشین و علوم داده با مدرک معتبر.",
+    return render_template('paths.html', tracks=tracks,
+                         title="مسیرهای آموزشی",
+                         description="مسیرهای تخصصی هوش مصنوعی و رباتیک با تخفیف ویژه ثبت‌نام کل دوره.",
+                         keywords=KEYWORDS)
+
+@app.route('/courses')
+def courses():
+    with sqlite3.connect(DB_NAME) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get all individual courses
+        cursor.execute('SELECT * FROM courses ORDER BY track, order_index')
+        all_courses = cursor.fetchall()
+        
+        # Format prices
+        formatted_courses = []
+        for course in all_courses:
+            c_dict = dict(course)
+            c_dict['formatted_price'] = "{:,}".format(course['price'])
+            formatted_courses.append(c_dict)
+            
+    return render_template('courses.html', courses=formatted_courses,
+                         title="دوره‌های آموزشی",
+                         description="لیست کامل دوره‌های تخصصی هوش مصنوعی، یادگیری ماشین و رباتیک.",
                          keywords=KEYWORDS)
 
 @app.route('/register', methods=['GET', 'POST'])

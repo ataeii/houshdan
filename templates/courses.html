@@ -9,13 +9,6 @@
         text-align: right;
     }
 
-    .original-price {
-        text-decoration: line-through;
-        color: #888;
-        font-size: 0.9rem;
-        margin-left: 0.5rem;
-    }
-
     .discounted-price {
         color: var(--primary-color);
         font-weight: 800;
@@ -28,17 +21,6 @@
         margin-right: 0.2rem;
     }
 
-    .discount-badge {
-        background: #e6f4ea;
-        color: #1e8e3e;
-        padding: 0.2rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        display: inline-block;
-    }
-
     .course-item {
         margin-bottom: 0.8rem;
         padding-right: 1rem;
@@ -48,34 +30,28 @@
 </style>
 
 <div style="text-align: center; padding: 4rem 1rem 0;">
-    <h1 style="font-size: 2.5rem;">برنامه آموزشی</h1>
-    <p style="color: #666;">مسیرهای تخصصی برای تبدیل شدن به مهندس هوش مصنوعی</p>
+    <h1 style="font-size: 2.5rem;">دوره‌های آموزشی تک‌درس</h1>
+    <p style="color: #666;">لیست کامل دوره‌های تخصصی هوش مصنوعی و رباتیک</p>
 </div>
 
 <div class="grid">
-    {% for track in tracks %}
+    {% for course in courses %}
     <div class="card" style="text-align: right; display: flex; flex-direction: column;">
         <div style="flex-grow: 1;">
-            <div class="card-icon">{{ track.icon }}</div>
-            <h3>{{ track.title }}</h3>
-            <p style="margin-bottom: 1.5rem;">{{ track.desc }}</p>
-            <ul style="list-style-type: none; padding: 0; color: #555;">
-                {% for course in track.courses %}
-                <li class="course-item">{{ course.title }}</li>
-                {% endfor %}
-            </ul>
+            <div class="card-icon">📚</div>
+            <h3>{{ course.title }}</h3>
+            <p style="margin-bottom: 1.5rem;">{{ course.description }}</p>
+            <div
+                style="margin-top: 1rem; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; font-size: 0.85rem; color: #666; font-weight: 500;">
+                <span style="color: var(--primary-color);">•</span> {{ course.total_modules }} ماژول آموزشی
+            </div>
         </div>
 
         <div class="price-container">
-            <div class="discount-badge">تخفیف ویژه ثبت‌نام کل مسیر</div>
             <div style="display: flex; align-items: baseline; justify-content: flex-start; gap: 0.5rem;">
-                <span class="original-price">{{ track.formatted_original }}</span>
-                <span class="discounted-price">{{ track.formatted_discounted }}</span>
+                <span class="discounted-price">{{ course.formatted_price }}</span>
                 <span class="toman">تومان</span>
             </div>
-            <p style="font-size: 0.75rem; color: #999; margin-top: 0.5rem;">
-                * قیمت تک‌درس: ۲,۵۰۰,۰۰۰ تومان
-            </p>
         </div>
         <p style="font-size: 0.72rem; color: #bbb; margin-top: 0.5rem;">* تشکیل کلاس‌ها منوط به حدنصاب ثبت‌نام است.</p>
     </div>
@@ -83,6 +59,6 @@
 </div>
 
 <div style="text-align: center; margin-bottom: 4rem;">
-    <a href="{{ url_for('register') }}" class="cta-button">ثبت نام و رزرو دوره</a>
+    <a href="{{ url_for('register') }}" class="cta-button">ثبت نام در دوره</a>
 </div>
 {% endblock %}
