@@ -41,9 +41,15 @@
             <div class="card-icon">📚</div>
             <h3>{{ course.title }}</h3>
             <p style="margin-bottom: 1.5rem;">{{ course.description }}</p>
-            <div
-                style="margin-top: 1rem; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; font-size: 0.85rem; color: #666; font-weight: 500;">
-                <span style="color: var(--primary-color);">•</span> {{ course.total_modules }} ماژول آموزشی
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <div
+                    style="padding: 0.3rem 0.6rem; background: #f8f9fa; border-radius: 4px; font-size: 0.8rem; color: #666; font-weight: 500;">
+                    📚 {{ course.total_modules }} ماژول تخصصی
+                </div>
+                <div
+                    style="padding: 0.3rem 0.6rem; background: #e8f0fe; border-radius: 4px; font-size: 0.8rem; color: var(--primary-color); font-weight: 500;">
+                    ⏳ {{ course.duration }} هفته آموزش
+                </div>
             </div>
         </div>
 

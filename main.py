@@ -76,7 +76,8 @@ def init_db():
                 track TEXT NOT NULL,
                 order_index INTEGER,
                 total_modules INTEGER DEFAULT 6,
-                price INTEGER DEFAULT 2500000
+                price INTEGER DEFAULT 2500000,
+                duration_weeks INTEGER DEFAULT 4
             )
         ''')
         
@@ -89,7 +90,8 @@ def init_db():
                 track_code TEXT UNIQUE NOT NULL,
                 original_price INTEGER,
                 discounted_price INTEGER,
-                icon TEXT
+                icon TEXT,
+                duration_weeks INTEGER
             )
         ''')
         
@@ -128,35 +130,47 @@ def init_db():
         columns = [column[1] for column in cursor.fetchall()]
         if 'price' not in columns:
             cursor.execute("ALTER TABLE courses ADD COLUMN price INTEGER DEFAULT 2500000")
-            conn.commit()
+        if 'duration_weeks' not in columns:
+            cursor.execute("ALTER TABLE courses ADD COLUMN duration_weeks INTEGER DEFAULT 4")
+            
+        cursor.execute("PRAGMA table_info(specializations)")
+        columns = [column[1] for column in cursor.fetchall()]
+        if 'duration_weeks' not in columns:
+            cursor.execute("ALTER TABLE specializations ADD COLUMN duration_weeks INTEGER")
+        
+        # Always ensure durations are populated for existing specializations
+        cursor.execute("UPDATE specializations SET duration_weeks = 20 WHERE track_code = 'LLM' AND duration_weeks IS NULL")
+        cursor.execute("UPDATE specializations SET duration_weeks = 24 WHERE track_code = 'AI_ROBOTICS' AND duration_weeks IS NULL")
+
+        conn.commit()
         
         # Seed specializations if empty
         cursor.execute('SELECT COUNT(*) FROM specializations')
         if cursor.fetchone()[0] == 0:
             specializations_data = [
-                ("مسیر تخصصی مدل‌های زبانی بزرگ (LLM Mastery)", "تمرکز عمیق بر مبانی ریاضی، نظریه یادگیری آماری و معماری مدل‌های زبانی.", "LLM", 12500000, 9900000, "💬"),
-                ("مسیر جامع هوش مصنوعی و رباتیک (AI & Robotics - 6 Steps)", "یک برنامه جامع ۶ مرحله‌ای از مبانی تا سیستم‌های هوشمند پیشرفته.", "AI_ROBOTICS", 15000000, 11900000, "🤖")
+                ("مسیر تخصصی مدل‌های زبانی بزرگ (LLM Mastery)", "تمرکز عمیق بر مبانی ریاضی، نظریه یادگیری آماری و معماری مدل‌های زبانی.", "LLM", 12500000, 9900000, "💬", 20),
+                ("مسیر جامع هوش مصنوعی و رباتیک (AI & Robotics - 6 Steps)", "یک برنامه جامع ۶ مرحله‌ای از مبانی تا سیستم‌های هوشمند پیشرفته.", "AI_ROBOTICS", 15000000, 11900000, "🤖", 24)
             ]
-            cursor.executemany('INSERT INTO specializations (title, description, track_code, original_price, discounted_price, icon) VALUES (?, ?, ?, ?, ?, ?)', specializations_data)
+            cursor.executemany('INSERT INTO specializations (title, description, track_code, original_price, discounted_price, icon, duration_weeks) VALUES (?, ?, ?, ?, ?, ?, ?)', specializations_data)
             conn.commit()
 
         # Seed courses if empty
         cursor.execute('SELECT COUNT(*) FROM courses')
         if cursor.fetchone()[0] == 0:
             courses_data = [
-                ('ریاضیات پیشرفته و نظریه یادگیری آماری', 'تمرکز بر مبانی ریاضی و نظریه یادگیری', 'LLM', 1, 6, 2500000),
-                ('مبانی نظری زبان‌شناسی محاسباتی', 'اصول زبان‌شناسی برای NLP', 'LLM', 2, 6, 2500000),
-                ('تحلیل ریاضی معماری ترنسفورمرها', 'معماری و مکانیزم توجه', 'LLM', 3, 6, 2500000),
-                ('نظریه مدل‌های مولد', 'مدل‌های مولد و استنتاج احتمالاتی', 'LLM', 4, 6, 2500000),
-                ('سمینار پژوهشی NLP', 'تحلیل مقالات پیشرفته', 'LLM', 5, 6, 2500000),
-                ('مبانی پایتون و ساختمان داده‌ها', 'شروع مسیر برنامه‌نویسی', 'AI_ROBOTICS', 1, 6, 2500000),
-                ('الگوریتم‌ها و تفکر محاسباتی', 'حل مسئله و طراحی الگوریتم', 'AI_ROBOTICS', 2, 6, 2500000),
-                ('ریاضیات پایه AI و بهینه‌سازی', 'جبر خطی، حساب دیفرانسیل و بهینه‌سازی', 'AI_ROBOTICS', 3, 6, 2500000),
-                ('اصول یادگیری ماشین و عمیق', 'ML و DL از مبانی تا پیشرفته', 'AI_ROBOTICS', 4, 6, 2500000),
-                ('بینایی ماشین و مکانیزم‌های توجه', 'Computer Vision و Attention', 'AI_ROBOTICS', 5, 6, 2500000),
-                ('رباتیک و سیستم‌های هوشمند', 'کاربردهای عملی AI در رباتیک', 'AI_ROBOTICS', 6, 6, 2500000),
+                ('ریاضیات پیشرفته و نظریه یادگیری آماری', 'تمرکز بر مبانی ریاضی و نظریه یادگیری', 'LLM', 1, 6, 2500000, 4),
+                ('مبانی نظری زبان‌شناسی محاسباتی', 'اصول زبان‌شناسی برای NLP', 'LLM', 2, 6, 2500000, 4),
+                ('تحلیل ریاضی معماری ترنسفورمرها', 'معماری و مکانیزم توجه', 'LLM', 3, 6, 2500000, 4),
+                ('نظریه مدل‌های مولد', 'مدل‌های مولد و استنتاج احتمالاتی', 'LLM', 4, 6, 2500000, 4),
+                ('سمینار پژوهشی NLP', 'تحلیل مقالات پیشرفته', 'LLM', 5, 6, 2500000, 4),
+                ('مبانی پایتون و ساختمان داده‌ها', 'شروع مسیر برنامه‌نویسی', 'AI_ROBOTICS', 1, 6, 2500000, 4),
+                ('الگوریتم‌ها و تفکر محاسباتی', 'حل مسئله و طراحی الگوریتم', 'AI_ROBOTICS', 2, 6, 2500000, 4),
+                ('ریاضیات پایه AI و بهینه‌سازی', 'جبر خطی، حساب دیفرانسیل و بهینه‌سازی', 'AI_ROBOTICS', 3, 6, 2500000, 4),
+                ('اصول یادگیری ماشین و عمیق', 'ML و DL از مبانی تا پیشرفته', 'AI_ROBOTICS', 4, 6, 2500000, 4),
+                ('بینایی ماشین و مکانیزم‌های توجه', 'Computer Vision و Attention', 'AI_ROBOTICS', 5, 6, 2500000, 4),
+                ('رباتیک و سیستم‌های هوشمند', 'کاربردهای عملی AI در رباتیک', 'AI_ROBOTICS', 6, 6, 2500000, 4),
             ]
-            cursor.executemany('INSERT INTO courses (title, description, track, order_index, total_modules, price) VALUES (?, ?, ?, ?, ?, ?)', courses_data)
+            cursor.executemany('INSERT INTO courses (title, description, track, order_index, total_modules, price, duration_weeks) VALUES (?, ?, ?, ?, ?, ?, ?)', courses_data)
             conn.commit()
 
 init_db()
@@ -223,6 +237,7 @@ def paths():
                 "formatted_original": "{:,}".format(spec['original_price']),
                 "formatted_discounted": "{:,}".format(spec['discounted_price']),
                 "icon": spec['icon'],
+                "duration": spec['duration_weeks'],
                 "courses": track_courses
             })
             
@@ -241,11 +256,11 @@ def courses():
         cursor.execute('SELECT * FROM courses ORDER BY track, order_index')
         all_courses = cursor.fetchall()
         
-        # Format prices
         formatted_courses = []
         for course in all_courses:
             c_dict = dict(course)
             c_dict['formatted_price'] = "{:,}".format(course['price'])
+            c_dict['duration'] = course['duration_weeks']
             formatted_courses.append(c_dict)
             
     return render_template('courses.html', courses=formatted_courses,

@@ -67,7 +67,12 @@
         </div>
 
         <div class="price-container">
-            <div class="discount-badge">تخفیف ویژه ثبت‌نام کل مسیر</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <div class="discount-badge" style="margin-bottom: 0;">تخفیف ویژه ثبت‌نام کل مسیر</div>
+                <div style="font-size: 0.85rem; color: #666; font-weight: 500;">
+                    ⏳ طول دوره: {{ track.duration }} هفته
+                </div>
+            </div>
             <div style="display: flex; align-items: baseline; justify-content: flex-start; gap: 0.5rem;">
                 <span class="original-price">{{ track.formatted_original }}</span>
                 <span class="discounted-price">{{ track.formatted_discounted }}</span>
