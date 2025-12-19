@@ -7,8 +7,10 @@ import os
 import csv
 from io import StringIO
 from datetime import datetime
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here')  # Change this in production!
 
 # Flask-Login setup
@@ -73,7 +75,21 @@ def init_db():
                 description TEXT,
                 track TEXT NOT NULL,
                 order_index INTEGER,
-                total_modules INTEGER DEFAULT 6
+                total_modules INTEGER DEFAULT 6,
+                price INTEGER DEFAULT 2500000
+            )
+        ''')
+        
+        # Specializations table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS specializations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                description TEXT,
+                track_code TEXT UNIQUE NOT NULL,
+                original_price INTEGER,
+                discounted_price INTEGER,
+                icon TEXT
             )
         ''')
         
@@ -107,23 +123,40 @@ def init_db():
         
         conn.commit()
         
+        # Migration: Add price column to courses if it doesn't exist
+        cursor.execute("PRAGMA table_info(courses)")
+        columns = [column[1] for column in cursor.fetchall()]
+        if 'price' not in columns:
+            cursor.execute("ALTER TABLE courses ADD COLUMN price INTEGER DEFAULT 2500000")
+            conn.commit()
+        
+        # Seed specializations if empty
+        cursor.execute('SELECT COUNT(*) FROM specializations')
+        if cursor.fetchone()[0] == 0:
+            specializations_data = [
+                ("مسیر تخصصی مدل‌های زبانی بزرگ (LLM Mastery)", "تمرکز عمیق بر مبانی ریاضی، نظریه یادگیری آماری و معماری مدل‌های زبانی.", "LLM", 12500000, 9900000, "💬"),
+                ("مسیر جامع هوش مصنوعی و رباتیک (AI & Robotics - 6 Steps)", "یک برنامه جامع ۶ مرحله‌ای از مبانی تا سیستم‌های هوشمند پیشرفته.", "AI_ROBOTICS", 15000000, 11900000, "🤖")
+            ]
+            cursor.executemany('INSERT INTO specializations (title, description, track_code, original_price, discounted_price, icon) VALUES (?, ?, ?, ?, ?, ?)', specializations_data)
+            conn.commit()
+
         # Seed courses if empty
         cursor.execute('SELECT COUNT(*) FROM courses')
         if cursor.fetchone()[0] == 0:
             courses_data = [
-                ('ریاضیات پیشرفته و نظریه یادگیری آماری', 'تمرکز بر مبانی ریاضی و نظریه یادگیری', 'LLM', 1, 6),
-                ('مبانی نظری زبان‌شناسی محاسباتی', 'اصول زبان‌شناسی برای NLP', 'LLM', 2, 6),
-                ('تحلیل ریاضی معماری ترنسفورمرها', 'معماری و مکانیزم توجه', 'LLM', 3, 6),
-                ('نظریه مدل‌های مولد', 'مدل‌های مولد و استنتاج احتمالاتی', 'LLM', 4, 6),
-                ('سمینار پژوهشی NLP', 'تحلیل مقالات پیشرفته', 'LLM', 5, 6),
-                ('مبانی پایتون و ساختمان داده‌ها', 'شروع مسیر برنامه‌نویسی', 'AI_ROBOTICS', 1, 6),
-                ('الگوریتم‌ها و تفکر محاسباتی', 'حل مسئله و طراحی الگوریتم', 'AI_ROBOTICS', 2, 6),
-                ('ریاضیات پایه AI و بهینه‌سازی', 'جبر خطی، حساب دیفرانسیل و بهینه‌سازی', 'AI_ROBOTICS', 3, 6),
-                ('اصول یادگیری ماشین و عمیق', 'ML و DL از مبانی تا پیشرفته', 'AI_ROBOTICS', 4, 6),
-                ('بینایی ماشین و مکانیزم‌های توجه', 'Computer Vision و Attention', 'AI_ROBOTICS', 5, 6),
-                ('رباتیک و سیستم‌های هوشمند', 'کاربردهای عملی AI در رباتیک', 'AI_ROBOTICS', 6, 6),
+                ('ریاضیات پیشرفته و نظریه یادگیری آماری', 'تمرکز بر مبانی ریاضی و نظریه یادگیری', 'LLM', 1, 6, 2500000),
+                ('مبانی نظری زبان‌شناسی محاسباتی', 'اصول زبان‌شناسی برای NLP', 'LLM', 2, 6, 2500000),
+                ('تحلیل ریاضی معماری ترنسفورمرها', 'معماری و مکانیزم توجه', 'LLM', 3, 6, 2500000),
+                ('نظریه مدل‌های مولد', 'مدل‌های مولد و استنتاج احتمالاتی', 'LLM', 4, 6, 2500000),
+                ('سمینار پژوهشی NLP', 'تحلیل مقالات پیشرفته', 'LLM', 5, 6, 2500000),
+                ('مبانی پایتون و ساختمان داده‌ها', 'شروع مسیر برنامه‌نویسی', 'AI_ROBOTICS', 1, 6, 2500000),
+                ('الگوریتم‌ها و تفکر محاسباتی', 'حل مسئله و طراحی الگوریتم', 'AI_ROBOTICS', 2, 6, 2500000),
+                ('ریاضیات پایه AI و بهینه‌سازی', 'جبر خطی، حساب دیفرانسیل و بهینه‌سازی', 'AI_ROBOTICS', 3, 6, 2500000),
+                ('اصول یادگیری ماشین و عمیق', 'ML و DL از مبانی تا پیشرفته', 'AI_ROBOTICS', 4, 6, 2500000),
+                ('بینایی ماشین و مکانیزم‌های توجه', 'Computer Vision و Attention', 'AI_ROBOTICS', 5, 6, 2500000),
+                ('رباتیک و سیستم‌های هوشمند', 'کاربردهای عملی AI در رباتیک', 'AI_ROBOTICS', 6, 6, 2500000),
             ]
-            cursor.executemany('INSERT INTO courses (title, description, track, order_index, total_modules) VALUES (?, ?, ?, ?, ?)', courses_data)
+            cursor.executemany('INSERT INTO courses (title, description, track, order_index, total_modules, price) VALUES (?, ?, ?, ?, ?, ?)', courses_data)
             conn.commit()
 
 init_db()
@@ -168,33 +201,31 @@ def home():
 
 @app.route('/courses')
 def courses():
-    tracks = [
-        {
-            "title": "مسیر تخصصی مدل‌های زبانی بزرگ (LLM Mastery)",
-            "desc": "تمرکز عمیق بر مبانی ریاضی، نظریه یادگیری آماری و معماری مدل‌های زبانی.",
-            "courses": [
-                "ریاضیات پیشرفته و نظریه یادگیری آماری (Statistical Learning Theory)",
-                "مبانی نظری زبان‌شناسی محاسباتی (Computational Linguistics)",
-                "تحلیل ریاضی معماری ترنسفورمرها و مکانیزم توجه (Attention)",
-                "نظریه مدل‌های مولد و استنتاج احتمالات (Generative Models Theory)",
-                "سمینار پژوهشی: تحلیل مقالات پیشرفته NLP"
-            ],
-            "icon": "💬"
-        },
-        {
-            "title": "مسیر جامع هوش مصنوعی و رباتیک (AI & Robotics - 6 Steps)",
-            "desc": "یک برنامه جامع ۶ مرحله‌ای از مبانی تا سیستم‌های هوشمند پیشرفته.",
-            "courses": [
-                "۱. مبانی پایتون و ساختمان داده‌ها (Python & Data Structures)",
-                "۲. الگوریتم‌ها و تفکر محاسباتی (Algorithms)",
-                "۳. ریاضیات پایه هوش مصنوعی و بهینه‌سازی (Math & Optimization)",
-                "۴. اصول یادگیری ماشین و عمیق (ML & Deep Learning Core)",
-                "۵. بینایی ماشین و مکانیزم‌های توجه (Computer Vision & Attention)",
-                "۶. رباتیک و سیستم‌های هوشمند (Robotics & Intelligent Systems)"
-            ],
-            "icon": "🤖"
-        }
-    ]
+    with sqlite3.connect(DB_NAME) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Get all specializations
+        cursor.execute('SELECT * FROM specializations')
+        specs = cursor.fetchall()
+        
+        tracks = []
+        for spec in specs:
+            # Get courses for this track
+            cursor.execute('SELECT * FROM courses WHERE track = ? ORDER BY order_index', (spec['track_code'],))
+            track_courses = cursor.fetchall()
+            
+            tracks.append({
+                "title": spec['title'],
+                "desc": spec['description'],
+                "original_price": spec['original_price'],
+                "discounted_price": spec['discounted_price'],
+                "formatted_original": "{:,}".format(spec['original_price']),
+                "formatted_discounted": "{:,}".format(spec['discounted_price']),
+                "icon": spec['icon'],
+                "courses": track_courses
+            })
+            
     return render_template('courses.html', tracks=tracks,
                          title="دوره آموزشی",
                          description="دوره جامع هوش مصنوعی و رباتیک در تهران و کرج. آموزش عملی مدل‌های زبانی، دید ماشین و علوم داده با مدرک معتبر.",
