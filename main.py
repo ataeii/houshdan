@@ -233,7 +233,7 @@ def init_db():
 init_db()
 
 # Common SEO Keywords
-KEYWORDS = "موسسه, آموزشی, هوش مصنوعی, یادگیری ماشین, تهران, شهرک غرب, سعادت آباد, کرج, روباتیک, مدل های زبانی, دید ماشین, بینایی ماشین, علوم داده"
+KEYWORDS = "آموزشگاه, آموزشی, هوش مصنوعی, یادگیری ماشین, تهران, شهرک غرب, سعادت آباد, کرج, روباتیک, مدل های زبانی, دید ماشین, بینایی ماشین, علوم داده"
 
 # Admin password (CHANGE THIS!)
 ADMIN_PASSWORD = "houshdan2024"
@@ -267,7 +267,7 @@ register_student_routes(app, DB_NAME)
 def home():
     return render_template('index.html', 
                          title="خانه", 
-                         description="موسسه آموزشی هوشدان. برگزارکننده دوره‌های تخصصی آنلاین هوش مصنوعی، یادگیری ماشین، علوم داده، رباتیک و مدل‌های زبانی.",
+                         description="آموزشگاه آموزشی هوشدان. برگزارکننده دوره‌های تخصصی آنلاین هوش مصنوعی، یادگیری ماشین، علوم داده، رباتیک و مدل‌های زبانی.",
                          keywords=KEYWORDS)
 
 @app.route('/paths')
@@ -367,7 +367,7 @@ def contact():
         
     return render_template('contact.html',
                          title="تماس با ما",
-                         description="با موسسه هوشدان در ارتباط باشید. مشاوره رایگان و پاسخ به سوالات شما.",
+                         description="با آموزشگاه هوشدان در ارتباط باشید. مشاوره رایگان و پاسخ به سوالات شما.",
                          keywords=KEYWORDS)
 
 @app.route('/register', methods=['GET', 'POST'])
