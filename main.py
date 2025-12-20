@@ -160,23 +160,43 @@ def init_db():
             cursor.execute("ALTER TABLE courses ADD COLUMN price INTEGER DEFAULT 2500000")
         if 'duration_weeks' not in columns:
             cursor.execute("ALTER TABLE courses ADD COLUMN duration_weeks INTEGER DEFAULT 4")
+        if 'start_date' not in columns:
+            cursor.execute("ALTER TABLE courses ADD COLUMN start_date TEXT")
             
         cursor.execute("PRAGMA table_info(specializations)")
         columns = [column[1] for column in cursor.fetchall()]
         if 'duration_weeks' not in columns:
             cursor.execute("ALTER TABLE specializations ADD COLUMN duration_weeks INTEGER")
         
-        # Always ensure durations are populated for existing specializations
+        # Always ensure durations and start dates are populated for existing specializations
         cursor.execute("UPDATE specializations SET duration_weeks = 20 WHERE track_code = 'LLM' AND duration_weeks IS NULL")
         cursor.execute("UPDATE specializations SET duration_weeks = 24 WHERE track_code = 'AI_ROBOTICS' AND duration_weeks IS NULL")
+
+        # Start dates logic (4 Bahman 1404, 2 per week)
+        start_dates = [
+            ('ریاضیات پیشرفته و نظریه یادگیری آماری', '۴ بهمن ۱۴۰۴'),
+            ('مبانی نظری زبان‌شناسی محاسباتی', '۴ بهمن ۱۴۰۴'),
+            ('تحلیل ریاضی معماری ترنسفورمرها', '۱۱ بهمن ۱۴۰۴'),
+            ('نظریه مدل‌های مولد', '۱۱ بهمن ۱۴۰۴'),
+            ('سمینار پژوهشی NLP', '۱۸ بهمن ۱۴۰۴'),
+            ('مبانی پایتون و ساختمان داده‌ها', '۱۸ بهمن ۱۴۰۴'),
+            ('الگوریتم‌ها و تفکر محاسباتی', '۲۵ بهمن ۱۴۰۴'),
+            ('ریاضیات پایه AI و بهینه سازی', '۲۵ بهمن ۱۴۰۴'),
+            ('اصول یادگیری ماشین و عمیق', '۲ اسفند ۱۴۰۴'),
+            ('بینایی ماشین و مکانیزم‌های توجه', '۲ اسفند ۱۴۰۴'),
+            ('رباتیک و سیستم‌های هوشمند', '۹ اسفند ۱۴۰۴'),
+            ('زبان تخصصی هوش مصنوعی', '۹ اسفند ۱۴۰۴')
+        ]
+        for title, date in start_dates:
+            cursor.execute("UPDATE courses SET start_date = ? WHERE title = ?", (date, title))
 
         # Specific migration: Add "English for AI" course if missing
         cursor.execute("SELECT COUNT(*) FROM courses WHERE title = 'زبان تخصصی هوش مصنوعی'")
         if cursor.fetchone()[0] == 0:
             cursor.execute('''
-                INSERT INTO courses (title, description, track, order_index, total_modules, price, duration_weeks) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', ('زبان تخصصی هوش مصنوعی', 'تقویت مهارت‌های خواندن مقالات پژوهشی، درک مستندات فنی و مهارت‌های پرامپت‌نویسی به زبان انگلیسی.', 'GENERAL', 1, 4, 1500000, 4))
+                INSERT INTO courses (title, description, track, order_index, total_modules, price, duration_weeks, start_date) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', ('زبان تخصصی هوش مصنوعی', 'تقویت مهارت‌های خواندن مقالات پژوهشی، درک مستندات فنی و مهارت‌های پرامپت‌نویسی به زبان انگلیسی.', 'GENERAL', 1, 4, 1500000, 4, '۹ اسفند ۱۴۰۴'))
 
         conn.commit()
         
@@ -194,20 +214,20 @@ def init_db():
         cursor.execute('SELECT COUNT(*) FROM courses')
         if cursor.fetchone()[0] == 0:
             courses_data = [
-                ('ریاضیات پیشرفته و نظریه یادگیری آماری', 'تمرکز بر مبانی ریاضی و نظریه یادگیری', 'LLM', 1, 6, 2500000, 4),
-                ('مبانی نظری زبان‌شناسی محاسباتی', 'اصول زبان‌شناسی برای NLP', 'LLM', 2, 6, 2500000, 4),
-                ('تحلیل ریاضی معماری ترنسفورمرها', 'معماری و مکانیزم توجه', 'LLM', 3, 6, 2500000, 4),
-                ('نظریه مدل‌های مولد', 'مدل‌های مولد و استنتاج احتمالاتی', 'LLM', 4, 6, 2500000, 4),
-                ('سمینار پژوهشی NLP', 'تحلیل مقالات پیشرفته', 'LLM', 5, 6, 2500000, 4),
-                ('مبانی پایتون و ساختمان داده‌ها', 'شروع مسیر برنامه‌نویسی', 'AI_ROBOTICS', 1, 6, 2500000, 4),
-                ('الگوریتم‌ها و تفکر محاسباتی', 'حل مسئله و طراحی الگوریتم', 'AI_ROBOTICS', 2, 6, 2500000, 4),
-                ('ریاضیات پایه AI و بهینه‌سازی', 'جبر خطی، حساب دیفرانسیل و بهینه‌سازی', 'AI_ROBOTICS', 3, 6, 2500000, 4),
-                ('اصول یادگیری ماشین و عمیق', 'ML و DL از مبانی تا پیشرفته', 'AI_ROBOTICS', 4, 6, 2500000, 4),
-                ('بینایی ماشین و مکانیزم‌های توجه', 'Computer Vision و Attention', 'AI_ROBOTICS', 5, 6, 2500000, 4),
-                ('رباتیک و سیستم‌های هوشمند', 'کاربردهای عملی AI در رباتیک', 'AI_ROBOTICS', 6, 6, 2500000, 4),
-                ('زبان تخصصی هوش مصنوعی', 'تقویت مهارت‌های خواندن مقالات پژوهشی، درک مستندات فنی و مهارت‌های پرامپت‌نویسی به زبان انگلیسی.', 'GENERAL', 1, 4, 1500000, 4),
+                ('ریاضیات پیشرفته و نظریه یادگیری آماری', 'تمرکز بر مبانی ریاضی و نظریه یادگیری', 'LLM', 1, 6, 2500000, 4, '۴ بهمن ۱۴۰۴'),
+                ('مبانی نظری زبان‌شناسی محاسباتی', 'اصول زبان‌شناسی برای NLP', 'LLM', 2, 6, 2500000, 4, '۴ بهمن ۱۴۰۴'),
+                ('تحلیل ریاضی معماری ترنسفورمرها', 'معماری و مکانیزم توجه', 'LLM', 3, 6, 2500000, 4, '۱۱ بهمن ۱۴۰۴'),
+                ('نظریه مدل‌های مولد', 'مدل‌های مولد و استنتاج احتمالاتی', 'LLM', 4, 6, 2500000, 4, '۱۱ بهمن ۱۴۰۴'),
+                ('سمینار پژوهشی NLP', 'تحلیل مقالات پیشرفته', 'LLM', 5, 6, 2500000, 4, '۱۸ بهمن ۱۴۰۴'),
+                ('مبانی پایتون و ساختمان داده‌ها', 'شروع مسیر برنامه‌نویسی', 'AI_ROBOTICS', 1, 6, 2500000, 4, '۱۸ بهمن ۱۴۰۴'),
+                ('الگوریتم‌ها و تفکر محاسباتی', 'مبانی تفکر الگوریتمیک', 'AI_ROBOTICS', 2, 6, 2500000, 4, '۲۵ بهمن ۱۴۰۴'),
+                ('ریاضیات پایه AI و بهینه سازی', 'ریاضیات مورد نیاز برای یادگیری ماشین', 'AI_ROBOTICS', 3, 6, 2500000, 4, '۲۵ بهمن ۱۴۰۴'),
+                ('اصول یادگیری ماشین و عمیق', 'ML و DL از مبانی تا پیشرفته', 'AI_ROBOTICS', 4, 6, 2500000, 4, '۲ اسفند ۱۴۰۴'),
+                ('بینایی ماشین و مکانیزم‌های توجه', 'Computer Vision و Attention', 'AI_ROBOTICS', 5, 6, 2500000, 4, '۲ اسفند ۱۴۰۴'),
+                ('رباتیک و سیستم‌های هوشمند', 'کاربردهای عملی AI در رباتیک', 'AI_ROBOTICS', 6, 6, 2500000, 4, '۹ اسفند ۱۴۰۴'),
+                ('زبان تخصصی هوش مصنوعی', 'تقویت مهارت‌های خواندن مقالات پژوهشی، درک مستندات فنی و مهارت‌های پرامپت‌نویسی به زبان انگلیسی.', 'GENERAL', 1, 4, 1500000, 4, '۹ اسفند ۱۴۰۴'),
             ]
-            cursor.executemany('INSERT INTO courses (title, description, track, order_index, total_modules, price, duration_weeks) VALUES (?, ?, ?, ?, ?, ?, ?)', courses_data)
+            cursor.executemany('INSERT INTO courses (title, description, track, order_index, total_modules, price, duration_weeks, start_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', courses_data)
             conn.commit()
 
 init_db()
@@ -247,7 +267,7 @@ register_student_routes(app, DB_NAME)
 def home():
     return render_template('index.html', 
                          title="خانه", 
-                         description="موسسه آموزشی هوشدان در تهران (شهرک غرب و سعادت آباد) و کرج. برگزارکننده دوره‌های تخصصی هوش مصنوعی، یادگیری ماشین، علوم داده، رباتیک و مدل‌های زبانی.",
+                         description="موسسه آموزشی هوشدان. برگزارکننده دوره‌های تخصصی آنلاین هوش مصنوعی، یادگیری ماشین، علوم داده، رباتیک و مدل‌های زبانی.",
                          keywords=KEYWORDS)
 
 @app.route('/paths')
@@ -266,6 +286,9 @@ def paths():
             cursor.execute('SELECT * FROM courses WHERE track = ? ORDER BY order_index', (spec['track_code'],))
             track_courses = cursor.fetchall()
             
+            # The start date of the track is the start date of its first course
+            track_start_date = track_courses[0]['start_date'] if track_courses else 'بزودی'
+            
             tracks.append({
                 "title": spec['title'],
                 "desc": spec['description'],
@@ -275,6 +298,7 @@ def paths():
                 "formatted_discounted": "{:,}".format(spec['discounted_price']),
                 "icon": spec['icon'],
                 "duration": spec['duration_weeks'],
+                "start_date": track_start_date,
                 "courses": track_courses
             })
             
@@ -298,6 +322,7 @@ def courses():
             c_dict = dict(course)
             c_dict['formatted_price'] = "{:,}".format(course['price'])
             c_dict['duration'] = course['duration_weeks']
+            c_dict['start_date'] = course['start_date']
             formatted_courses.append(c_dict)
             
     return render_template('courses.html', courses=formatted_courses,
