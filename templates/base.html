@@ -23,7 +23,43 @@
     <meta property="twitter:image" content="{{ url_for('static', filename='images/instructor.png', _external=True) }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .floating-contact {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+            font-size: 24px;
+            z-index: 1000;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .floating-contact:hover {
+            transform: scale(1.1);
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .floating-contact {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -34,6 +70,7 @@
             <li><a href="{{ url_for('home') }}">خانه</a></li>
             <li><a href="{{ url_for('paths') }}">مسیرهای آموزشی</a></li>
             <li><a href="{{ url_for('courses') }}">دوره‌های آموزشی</a></li>
+            <li><a href="{{ url_for('contact') }}">تماس با ما</a></li>
             {% if current_user.is_authenticated %}
             <li><a href="{{ url_for('dashboard') }}">داشبورد</a></li>
             <li><a href="{{ url_for('logout') }}" class="btn-nav">خروج</a></li>
@@ -73,6 +110,9 @@
         <p class="footer-note">پرورش نسل آینده مهندسین هوش مصنوعی</p>
     </footer>
 
+    <a href="{{ url_for('contact') }}" class="floating-contact" title="تماس با ما">
+        ✉️
+    </a>
 </body>
 
 </html>

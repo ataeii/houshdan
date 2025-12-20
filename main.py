@@ -8,6 +8,11 @@ import csv
 from io import StringIO
 from datetime import datetime
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_mail import Mail, Message
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -28,6 +33,16 @@ google = oauth.register(
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
 )
+
+# Flask-Mail configuration
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+
+mail = Mail(app)
 
 # Database Configuration for Liara
 # If running on Liara (where /app/data exists), use the persistent disk.
@@ -122,6 +137,19 @@ def init_db():
                 UNIQUE(user_id, course_id, module_number)
             )
         ''')
+
+        # Contact messages table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS contact_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                subject TEXT,
+                message TEXT NOT NULL,
+                status TEXT DEFAULT 'unread',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         
         conn.commit()
         
@@ -141,6 +169,14 @@ def init_db():
         # Always ensure durations are populated for existing specializations
         cursor.execute("UPDATE specializations SET duration_weeks = 20 WHERE track_code = 'LLM' AND duration_weeks IS NULL")
         cursor.execute("UPDATE specializations SET duration_weeks = 24 WHERE track_code = 'AI_ROBOTICS' AND duration_weeks IS NULL")
+
+        # Specific migration: Add "English for AI" course if missing
+        cursor.execute("SELECT COUNT(*) FROM courses WHERE title = 'زبان تخصصی هوش مصنوعی'")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute('''
+                INSERT INTO courses (title, description, track, order_index, total_modules, price, duration_weeks) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', ('زبان تخصصی هوش مصنوعی', 'تقویت مهارت‌های خواندن مقالات پژوهشی، درک مستندات فنی و مهارت‌های پرامپت‌نویسی به زبان انگلیسی.', 'GENERAL', 1, 4, 1500000, 4))
 
         conn.commit()
         
@@ -169,6 +205,7 @@ def init_db():
                 ('اصول یادگیری ماشین و عمیق', 'ML و DL از مبانی تا پیشرفته', 'AI_ROBOTICS', 4, 6, 2500000, 4),
                 ('بینایی ماشین و مکانیزم‌های توجه', 'Computer Vision و Attention', 'AI_ROBOTICS', 5, 6, 2500000, 4),
                 ('رباتیک و سیستم‌های هوشمند', 'کاربردهای عملی AI در رباتیک', 'AI_ROBOTICS', 6, 6, 2500000, 4),
+                ('زبان تخصصی هوش مصنوعی', 'تقویت مهارت‌های خواندن مقالات پژوهشی، درک مستندات فنی و مهارت‌های پرامپت‌نویسی به زبان انگلیسی.', 'GENERAL', 1, 4, 1500000, 4),
             ]
             cursor.executemany('INSERT INTO courses (title, description, track, order_index, total_modules, price, duration_weeks) VALUES (?, ?, ?, ?, ?, ?, ?)', courses_data)
             conn.commit()
@@ -266,6 +303,46 @@ def courses():
     return render_template('courses.html', courses=formatted_courses,
                          title="دوره‌های آموزشی",
                          description="لیست کامل دوره‌های تخصصی هوش مصنوعی، یادگیری ماشین و رباتیک.",
+                         keywords=KEYWORDS)
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        subject = request.form.get('subject', 'بدون موضوع')
+        message = request.form.get('message')
+        
+        if not name or not email or not message:
+            flash('لطفاً تمامی فیلدها را پر کنید', 'error')
+            return redirect(url_for('contact'))
+            
+        with sqlite3.connect(DB_NAME) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO contact_messages (name, email, subject, message)
+                VALUES (?, ?, ?, ?)
+            ''', (name, email, subject, message))
+            conn.commit()
+            
+        # Send Email Notification
+        try:
+            msg = Message(
+                subject=f"پیام جدید از {name}: {subject}",
+                recipients=[os.environ.get('ADMIN_EMAIL', 'hadiataei@gmail.com')], # Default or env
+                body=f"نام: {name}\nایمیل: {email}\nموضوع: {subject}\n\nپیام:\n{message}"
+            )
+            mail.send(msg)
+        except Exception as e:
+            print(f"Error sending email: {e}")
+            # We still show success since it's saved in the DB
+            
+        flash('پیام شما با موفقیت ارسال شد. به زودی با شما تماس خواهیم گرفت.', 'success')
+        return redirect(url_for('contact'))
+        
+    return render_template('contact.html',
+                         title="تماس با ما",
+                         description="با موسسه هوشدان در ارتباط باشید. مشاوره رایگان و پاسخ به سوالات شما.",
                          keywords=KEYWORDS)
 
 @app.route('/register', methods=['GET', 'POST'])

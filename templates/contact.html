@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 4rem auto; padding: 0 1rem;">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">تماس با ما</h1>
+        <p style="color: #666; font-size: 1.1rem;">سوالات، پیشنهادات و نظرات خود را با ما در میان بگذارید.</p>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 1fr; gap: 2rem;">
+        <div class="card" style="padding: 2.5rem; text-align: right;">
+            <form method="POST" action="{{ url_for('contact') }}">
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="name" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">نام و نام
+                        خانوادگی</label>
+                    <input type="text" id="name" name="name" required
+                        style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 1rem;"
+                        placeholder="نام شما...">
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">آدرس
+                        ایمیل</label>
+                    <input type="email" id="email" name="email" required
+                        style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 1rem;"
+                        placeholder="example@email.com">
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="subject" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">موضوع
+                        پیام</label>
+                    <input type="text" id="subject" name="subject"
+                        style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 1rem;"
+                        placeholder="موضوع...">
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <label for="message" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">متن
+                        پیام</label>
+                    <textarea id="message" name="message" required rows="5"
+                        style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 1rem; resize: vertical;"
+                        placeholder="پیام خود را اینجا بنویسید..."></textarea>
+                </div>
+
+                <button type="submit" class="cta-button" style="width: 100%; font-size: 1.1rem;">ارسال پیام</button>
+            </form>
+        </div>
+
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+            <div style="text-align: center; padding: 1.5rem; background: #f8f9fa; border-radius: 12px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📍</div>
+                <h4 style="margin-bottom: 0.5rem;">آدرس ما</h4>
+                <p style="color: #666; font-size: 0.9rem;">تهران، شهرک غرب، خیابان پیروزان</p>
+            </div>
+            <div style="text-align: center; padding: 1.5rem; background: #f8f9fa; border-radius: 12px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📞</div>
+                <h4 style="margin-bottom: 0.5rem;">تلفن تماس</h4>
+                <p style="color: #666; font-size: 0.9rem; direction: ltr;">۰۲۱-۸۸۸۸۴۴۴۴</p>
+            </div>
+            <div style="text-align: center; padding: 1.5rem; background: #f8f9fa; border-radius: 12px;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">✉️</div>
+                <h4 style="margin-bottom: 0.5rem;">ایمیل مستقیم</h4>
+                <p style="color: #666; font-size: 0.9rem;">info@houshdan.ir</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
